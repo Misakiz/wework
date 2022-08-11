@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/randolphcyg/wework/api"
+	"github.com/Misakiz/wework/api"
 )
 
 func GenerateCorpAPIMethods() time.Time {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/randolphcyg/wework/config"
+	"github.com/Misakiz/wework/config"
 )
 
 var CORP_API_TYPE = map[string][]string{

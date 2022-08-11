@@ -1,4 +1,4 @@
-module github.com/randolphcyg/wework
+module github.com/Misakiz/wework
 
 go 1.17
 

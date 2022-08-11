@@ -1,11 +1,11 @@
-# github.com/randolphcyg/wework
+# github.com/Misakiz/wework
 
 将企业微信接口与企业微信的加解密接口打包在一起，方便用户直接生成客户端使用
 
 ## 1. install
 
 ```shell
-go get github.com/randolphcyg/wework
+go get github.com/Misakiz/wework
 ```
 
 ## 2. Usage1 调用普通接口
@@ -18,7 +18,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/randolphcyg/wework/api"
+	"github.com/Misakiz/wework/api"
 	"项目名称/conf"
 )
 
