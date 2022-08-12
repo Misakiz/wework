@@ -198,8 +198,8 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 	shortUrl := urlType[0]
 	method := urlType[1]
 	retryCnt := 0
-
 	var response *http.Response
+	defer response.Body.Close()
 	var err error
 	data := make(map[string]interface{}, 0)
 
@@ -211,11 +211,11 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 			if err != nil {
 				return nil, err
 			}
-			response, err = a.httpGetPlus(url)
+			realUrl := a.appendToken(url)
+			response, err = http.Get(realUrl)
 			if err != nil {
 				return nil, err
 			}
-
 		default:
 			return nil, errors.New("unknown method type")
 		}
