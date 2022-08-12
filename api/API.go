@@ -151,18 +151,18 @@ func (a *API) httpGet(url string) ([]byte, error) {
 }
 
 func (a *API) httpGetPlus(url string) (*http.Response, error) {
+	var res *http.Response
+	var err error
 	realUrl := a.appendToken(url)
 	if config.DEBUG {
 		fmt.Println("httpGet: " + url)
 	}
-	res, err := http.Get(realUrl)
+	res, err = http.Get(realUrl)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-
 	return res, nil
-
 }
 
 func (a *API) checkResponse(data map[string]interface{}) (map[string]interface{}, error) {
