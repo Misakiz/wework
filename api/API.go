@@ -6,8 +6,8 @@ import (
 	"github.com/Misakiz/wework/config"
 	"github.com/Misakiz/wework/utils"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	http "net/http"
-	"strconv"
 	"strings"
 )
 
@@ -198,9 +198,11 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 	shortUrl := urlType[0]
 	method := urlType[1]
 	retryCnt := 0
-	var Code string
+
 	var response *http.Response
 	var err error
+	data := make(map[string]interface{}, 0)
+
 	for retryCnt < 3 {
 		switch method {
 		case "GET":
@@ -209,18 +211,28 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 			if err != nil {
 				return nil, err
 			}
-			response, err := a.httpGetPlus(url)
+			response, err = a.httpGetPlus(url)
 			if err != nil {
 				return nil, err
 			}
-			Code = response.Header.Get("Error-Code")
 
 		default:
 			return nil, errors.New("unknown method type")
 		}
-		if Code != "" {
-			errCode, err := strconv.ParseFloat(Code, 64)
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		//续期token
+		if a.GetAccessToken() == "" {
+			err = json.Unmarshal(body, &data)
 			if err != nil {
+				retryCnt++
+				continue
+			}
+			errCode, ok := data["errcode"].(float64)
+			if !ok {
 				err = errors.New("response didn't contains errcode")
 				retryCnt++
 				continue
