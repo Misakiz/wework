@@ -1,5 +1,7 @@
 package api
 
+import "net/http"
+
 func (c *CorpAPI) OpenidToUserid(args map[string]interface{}) (map[string]interface{}, error) {
 	return c.HttpCall(CORP_API_TYPE["OPENID_TO_USERID"], args)
 }
@@ -128,8 +130,8 @@ func (c *CorpAPI) MenuDelete(args map[string]interface{}) (map[string]interface{
 	return c.HttpCall(CORP_API_TYPE["MENU_DELETE"], args)
 }
 
-func (c *CorpAPI) MediaGet(args map[string]interface{}) ([]byte, error) {
-	return c.HttpCallRespBody(CORP_API_TYPE["MEDIA_GET"], args)
+func (c *CorpAPI) MediaGet(args map[string]interface{}) (*http.Response, error) {
+	return c.HttpGetRespPlus(CORP_API_TYPE["MEDIA_GET"], args)
 }
 
 func (c *CorpAPI) UserDelete(args map[string]interface{}) (map[string]interface{}, error) {

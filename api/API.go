@@ -3,11 +3,12 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"github.com/Misakiz/wework/config"
 	"github.com/Misakiz/wework/utils"
 	"github.com/pkg/errors"
+	http "net/http"
+	"strconv"
+	"strings"
 )
 
 type AccessAPI interface {
@@ -149,6 +150,21 @@ func (a *API) httpGet(url string) ([]byte, error) {
 	return utils.HttpGet(realUrl)
 }
 
+func (a *API) httpGetPlus(url string) (*http.Response, error) {
+	realUrl := a.appendToken(url)
+	if config.DEBUG {
+		fmt.Println("httpGet: " + url)
+	}
+	res, err := http.Get(realUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	return res, nil
+
+}
+
 func (a *API) checkResponse(data map[string]interface{}) (map[string]interface{}, error) {
 	errCode, _ := data["errcode"].(float64)
 	errMsg, _ := data["errmsg"].(string)
@@ -178,56 +194,35 @@ func (a *API) refreshToken(url string) {
 	}
 }
 
-func (a *API) HttpCallRespBody(urlType []string, args map[string]interface{}) ([]byte, error) {
+func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*http.Response, error) {
 	shortUrl := urlType[0]
 	method := urlType[1]
 	retryCnt := 0
-	data := make(map[string]interface{}, 0)
-	var response []byte
+	var Code string
+	var response *http.Response
 	var err error
 	for retryCnt < 3 {
 		switch method {
-		case "POST":
-			url := utils.MakeUrl(shortUrl)
-			url, err := a.appendUrlArgs(url, args)
-			if err != nil {
-				return nil, err
-			}
-			var postData string
-			if args != nil {
-				jsonStr, err := json.Marshal(args)
-				if err != nil {
-					return nil, err
-				}
-				postData = string(jsonStr)
-			}
-			response, err = a.httpPost(url, postData)
 		case "GET":
 			url := utils.MakeUrl(shortUrl)
 			url, err = a.appendArgs(url, args)
 			if err != nil {
 				return nil, err
 			}
-			response, err = a.httpGet(url)
+			response, err := a.httpGetPlus(url)
+			Code = response.Header.Get("Error-Code")
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, errors.New("unknown method type")
 		}
-
-		if config.DEBUG {
-			fmt.Println(string(response))
-		}
-		err = json.Unmarshal(response, &data)
+		errCode, err := strconv.ParseFloat(Code, 64)
 		if err != nil {
-			retryCnt++
-			continue
-		}
-		errCode, ok := data["errcode"].(float64)
-		if !ok {
 			err = errors.New("response didn't contains errcode")
 			retryCnt++
 			continue
 		}
-
 		if a.tokenExpired(errCode) {
 			a.refreshToken(shortUrl)
 			retryCnt++
