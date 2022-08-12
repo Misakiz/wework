@@ -196,51 +196,22 @@ func (a *API) refreshToken(url string) {
 func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) ([]byte, error) {
 	shortUrl := urlType[0]
 	method := urlType[1]
-	retryCnt := 0
 	var response []byte
 	var err error
-	data := make(map[string]interface{}, 0)
-
-	for retryCnt < 3 {
-		switch method {
-		case "GET":
-			url := utils.MakeUrl(shortUrl)
-			url, err = a.appendArgs(url, args)
-			if err != nil {
-				return nil, err
-			}
-			response, err = a.httpGet(url)
-			if err != nil {
-				return nil, err
-			}
-
-		default:
-			return nil, errors.New("unknown method type")
+	switch method {
+	case "GET":
+		url := utils.MakeUrl(shortUrl)
+		url, err = a.appendArgs(url, args)
+		if err != nil {
+			return nil, err
 		}
-
-		//续期token
-		if a.GetAccessToken() == "" {
-			err = json.Unmarshal(response, &data)
-			if err != nil {
-				retryCnt++
-				continue
-			}
-			errCode, ok := data["errcode"].(float64)
-			if !ok {
-				err = errors.New("response didn't contains errcode")
-				retryCnt++
-				continue
-			}
-			if a.tokenExpired(errCode) {
-				a.refreshToken(shortUrl)
-				retryCnt++
-				continue
-			}
-			break
+		a.refreshToken(shortUrl)
+		response, err = a.httpGet(url)
+		if err != nil {
+			return nil, err
 		}
-	}
-	if err != nil {
-		return nil, err
+	default:
+		return nil, errors.New("unknown method type")
 	}
 	return response, err
 }
