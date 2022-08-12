@@ -129,7 +129,7 @@ func (c *CorpAPI) MenuDelete(args map[string]interface{}) (map[string]interface{
 }
 
 func (c *CorpAPI) MediaGet(args map[string]interface{}) ([]byte, error) {
-	return c.HttpCallRespBody(CORP_API_TYPE["MENU_DELETE"], args)
+	return c.HttpCallRespBody(CORP_API_TYPE["MEDIA_GET"], args)
 }
 
 func (c *CorpAPI) UserDelete(args map[string]interface{}) (map[string]interface{}, error) {
