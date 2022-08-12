@@ -160,7 +160,7 @@ func (a *API) checkResponse(data map[string]interface{}) (map[string]interface{}
 }
 
 func (a *API) tokenExpired(errCode float64) bool {
-	if errCode == 40014 || errCode == 42001 || errCode == 42007 || errCode == 42009 {
+	if errCode == 40014 || errCode == 42001 || errCode == 42007 || errCode == 42009 || errCode == 41001 {
 		return true
 	}
 	return false
