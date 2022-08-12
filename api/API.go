@@ -6,7 +6,6 @@ import (
 	"github.com/Misakiz/wework/config"
 	"github.com/Misakiz/wework/utils"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	http "net/http"
 	"strings"
 )
@@ -151,18 +150,18 @@ func (a *API) httpGet(url string) ([]byte, error) {
 }
 
 func (a *API) httpGetPlus(url string) (*http.Response, error) {
-	var res *http.Response
-	var err error
 	realUrl := a.appendToken(url)
 	if config.DEBUG {
 		fmt.Println("httpGet: " + url)
 	}
-	res, err = http.Get(realUrl)
+	res, err := http.Get(realUrl)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
+
 	return res, nil
+
 }
 
 func (a *API) checkResponse(data map[string]interface{}) (map[string]interface{}, error) {
@@ -194,12 +193,11 @@ func (a *API) refreshToken(url string) {
 	}
 }
 
-func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*http.Response, error) {
+func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) ([]byte, error) {
 	shortUrl := urlType[0]
 	method := urlType[1]
 	retryCnt := 0
-	var response *http.Response
-	defer response.Body.Close()
+	var response []byte
 	var err error
 	data := make(map[string]interface{}, 0)
 
@@ -211,22 +209,18 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 			if err != nil {
 				return nil, err
 			}
-			realUrl := a.appendToken(url)
-			response, err = http.Get(realUrl)
+			response, err = a.httpGet(url)
 			if err != nil {
 				return nil, err
 			}
+
 		default:
 			return nil, errors.New("unknown method type")
-		}
-		body, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			return nil, err
 		}
 
 		//续期token
 		if a.GetAccessToken() == "" {
-			err = json.Unmarshal(body, &data)
+			err = json.Unmarshal(response, &data)
 			if err != nil {
 				retryCnt++
 				continue
