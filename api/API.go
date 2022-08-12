@@ -177,3 +177,66 @@ func (a *API) refreshToken(url string) {
 		a.RefreshAccessToken()
 	}
 }
+
+func (a *API) HttpCallRespBody(urlType []string, args map[string]interface{}) ([]byte, error) {
+	shortUrl := urlType[0]
+	method := urlType[1]
+	retryCnt := 0
+	data := make(map[string]interface{}, 0)
+	var response []byte
+	var err error
+	for retryCnt < 3 {
+		switch method {
+		case "POST":
+			url := utils.MakeUrl(shortUrl)
+			url, err := a.appendUrlArgs(url, args)
+			if err != nil {
+				return nil, err
+			}
+			var postData string
+			if args != nil {
+				jsonStr, err := json.Marshal(args)
+				if err != nil {
+					return nil, err
+				}
+				postData = string(jsonStr)
+			}
+			response, err = a.httpPost(url, postData)
+		case "GET":
+			url := utils.MakeUrl(shortUrl)
+			url, err = a.appendArgs(url, args)
+			if err != nil {
+				return nil, err
+			}
+			response, err = a.httpGet(url)
+		default:
+			return nil, errors.New("unknown method type")
+		}
+
+		if config.DEBUG {
+			fmt.Println(string(response))
+		}
+		err = json.Unmarshal(response, &data)
+		if err != nil {
+			retryCnt++
+			continue
+		}
+		errCode, ok := data["errcode"].(float64)
+		if !ok {
+			err = errors.New("response didn't contains errcode")
+			retryCnt++
+			continue
+		}
+
+		if a.tokenExpired(errCode) {
+			a.refreshToken(shortUrl)
+			retryCnt++
+			continue
+		}
+		break
+	}
+	if err != nil {
+		return nil, err
+	}
+	return response, err
+}
