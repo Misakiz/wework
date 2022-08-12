@@ -210,24 +210,28 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 				return nil, err
 			}
 			response, err := a.httpGetPlus(url)
-			Code = response.Header.Get("Error-Code")
 			if err != nil {
 				return nil, err
 			}
+			Code = response.Header.Get("Error-Code")
+
 		default:
 			return nil, errors.New("unknown method type")
 		}
-		errCode, err := strconv.ParseFloat(Code, 64)
-		if err != nil {
-			err = errors.New("response didn't contains errcode")
-			retryCnt++
-			continue
+		if Code != "" {
+			errCode, err := strconv.ParseFloat(Code, 64)
+			if err != nil {
+				err = errors.New("response didn't contains errcode")
+				retryCnt++
+				continue
+			}
+			if a.tokenExpired(errCode) {
+				a.refreshToken(shortUrl)
+				retryCnt++
+				continue
+			}
 		}
-		if a.tokenExpired(errCode) {
-			a.refreshToken(shortUrl)
-			retryCnt++
-			continue
-		}
+
 		break
 	}
 	if err != nil {
