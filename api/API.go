@@ -230,9 +230,8 @@ func (a *API) HttpGetRespPlus(urlType []string, args map[string]interface{}) (*h
 				retryCnt++
 				continue
 			}
+			break
 		}
-
-		break
 	}
 	if err != nil {
 		return nil, err
